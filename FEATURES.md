@@ -25,7 +25,10 @@
 テンプレート化の際に削除したブログ機能（関連記事・ページネーション・RSS・表の
 横スクロール・ヒーロー画像・タグアーカイブ・ブログ一式）のものです。C6 と
 §3.2-f（セルフホストフォント）は、フォントのライセンス文を同梱する手間を
-なくすため、システムフォントに置き換えたので欠番です。
+なくすため、システムフォントに置き換えたので欠番です（現在の書体は Google
+Fonts の配信を使うので、ライセンス文の同梱は不要。D3 を参照）。C7（ダーク
+モード）と §3.2-g は、ライトのみのデザインを取り込んだ際に削除したので欠番
+です。
 
 ---
 
@@ -33,20 +36,21 @@
 
 ### 1.1 常設（消す前提がない）
 
-| 機能                                  | 実体                                                                       |
-| ------------------------------------- | -------------------------------------------------------------------------- |
-| タイトル / description / canonical    | `src/components/SEO.astro`、`src/layouts/Base.astro`                       |
-| charset / viewport                    | `src/components/SEO.astro`                                                 |
-| Base レイアウト（head + ページ外枠）  | `src/layouts/Base.astro`                                                   |
-| Header / NavLinks / Footer / ナビ設定 | `src/components/{Header,NavLinks,Footer}.astro`、`site.ts` の `nav`        |
-| 設定の集約（`site.ts`）               | `src/content/site.ts`                                                      |
-| サイトオリジン（`url`→`Astro.site`）  | `site.ts` の `url`、`astro.config.mjs`                                     |
-| URL 正規化（末尾スラッシュなし）      | `astro.config.mjs` の `trailingSlash`、`wrangler.jsonc` の `html_handling` |
-| デザイントークン（`@theme`）          | `src/styles/global.css` の `@theme {`                                      |
-| 共通コンテナ（`container-page`）      | `src/styles/global.css` の `@utility container-page`                       |
-| 横スクロール防止（2層）               | `global.css` の `overflow-wrap: anywhere` と `:where(img, svg, …)`         |
-| 404 ページ                            | `src/pages/404.astro`                                                      |
-| Prettier / TypeScript 設定            | `.prettierrc`、`tsconfig.json`                                             |
+| 機能                                 | 実体                                                                       |
+| ------------------------------------ | -------------------------------------------------------------------------- |
+| タイトル / description / canonical   | `src/components/SEO.astro`、`src/layouts/Base.astro`                       |
+| charset / viewport                   | `src/components/SEO.astro`                                                 |
+| Base レイアウト（head + ページ外枠） | `src/layouts/Base.astro`                                                   |
+| Header / Footer / ナビ設定           | `src/components/{Header,Footer,BrandMark}.astro`、`site.ts` の `nav`       |
+| 節の部品（トップ1ページ）            | `src/components/sections/*`、`SectionTitle.astro`、`src/pages/index.astro` |
+| 設定の集約（`site.ts`）              | `src/content/site.ts`                                                      |
+| サイトオリジン（`url`→`Astro.site`） | `site.ts` の `url`、`astro.config.mjs`                                     |
+| URL 正規化（末尾スラッシュなし）     | `astro.config.mjs` の `trailingSlash`、`wrangler.jsonc` の `html_handling` |
+| デザイントークン（`@theme`）         | `src/styles/global.css` の `@theme {`                                      |
+| 共通コンテナ（`container-page`）     | `src/styles/global.css` の `@utility container-page`                       |
+| 横スクロール防止（2層）              | `global.css` の `overflow-wrap: anywhere` と `:where(img, svg, …)`         |
+| 404 ページ                           | `src/pages/404.astro`                                                      |
+| Prettier / TypeScript 設定           | `.prettierrc`、`tsconfig.json`                                             |
 
 > タップ領域（`tap-target`）と本文スタイル（`prose`）も実質は常設です。理由と
 > 「それでも消すなら」は §5-7 / §5-5 に書きました。
@@ -59,9 +63,9 @@
 | B2  | Search Console 認証メタ   | env  | `src/components/SEO.astro` の `gscVerification`                | §3.1-b |
 | B3  | リンク先読み（唯一の JS） | ON   | `astro.config.mjs` の `prefetch:`                              | §3.1-c |
 | B4  | FAQ（`<details>`）        | ON   | `src/components/FAQ.astro`                                     | §3.1-d |
-| B7  | モバイルメニュー          | ON   | `src/components/Header.astro` の `<details class="md:hidden">` | §3.1-g |
+| B7  | 全画面メニュー            | ON   | `src/components/FullscreenMenu.astro`、`src/scripts/menu.ts`   | §3.1-g |
 | B9  | `robots.txt`              | ON   | `src/pages/robots.txt.ts`                                      | §3.1-i |
-| B10 | LocalBusiness + NAP 表示  | OFF  | `site.ts` の `business:`、`BusinessInfo.astro`、`jsonld.ts`    | §3.1-j |
+| B10 | LocalBusiness + アクセス  | ON   | `site.ts` の `business:`、`sections/Access.astro`、`jsonld.ts` | §3.1-j |
 | B11 | セキュリティヘッダ        | ON   | `public/_headers`                                              | §3.1-k |
 | B12 | 内部リンク検査            | ON   | `scripts/check-links.mjs`                                      | §3.1-l |
 | B13 | 単体テスト（Vitest）      | ON   | `src/**/*.test.ts`、`vitest.config.ts`                         | §3.1-m |
@@ -77,9 +81,16 @@
 | C3  | サイトマップ                  | ON   | `astro.config.mjs` の `sitemap({`                  | §3.2-c | `robots.txt` の `Sitemap:` 行も |
 | C4  | noindex 制御                  | ON※  | `site.ts` の `noindexPaths`                        | §3.2-d | 判定は共通関数に集約済み        |
 | C5  | theme-color                   | ON   | `SEO.astro` の `theme-color`、`site.ts`            | §3.2-e | webmanifest も同じ値を読む      |
-| C7  | ダークモード                  | ON   | `global.css` の `prefers-color-scheme: dark`       | §3.2-g | `themeColorDark` も一緒に       |
 | C10 | パンくず（表示）              | OFF  | `src/components/Breadcrumbs.astro`                 | §3.2-j | 下層ページ用。現状は未使用      |
 | C12 | JSON-LD 構造化データ          | ON   | `src/lib/seo/jsonld.ts`                            | §3.2-l | パンくず表示は無修正で残せる    |
+
+### 1.4 デザイン（取り込んだデモ由来）
+
+| #   | 機能                   | 既定 | 実体                                                                           | 手順   |
+| --- | ---------------------- | ---- | ------------------------------------------------------------------------------ | ------ |
+| D2  | ローディング画面       | ON   | `src/components/Loader.astro`、`src/scripts/loader.ts`                         | §3.4-a |
+| D3  | Google Fonts           | ON   | `src/layouts/Base.astro` の `fonts.googleapis.com`、`global.css` の `--font-*` | §3.4-b |
+| D4  | スクロール演出（GSAP） | ON   | `src/scripts/{reveals,hero}.ts`、`global.css` の Motion 節、`data-reveal*`     | §3.4-c |
 
 ※ C4 は配線済みだが `noindexPaths: []` なので既定では何も起きない。
 
@@ -142,26 +153,30 @@ Analytics、GSC メタ、theme-color、ダークモード。
 2. `src/pages/index.astro` の `import FAQ`、`const faqs = [ … ]`、`<FAQ … />`
    を削除
 
-#### g. モバイルメニュー
+#### g. 全画面メニュー
 
-`src/components/Header.astro` の `<details class="md:hidden">` 全体を削除し、
-デスクトップ用 `<div class="hidden md:block">` のラッパを外して常時表示に。
-ナビ項目が増えると狭い画面で溢れるので、代替（フッターナビ等）を用意してから。
+1. `src/components/FullscreenMenu.astro` と `src/scripts/menu.ts` を削除
+2. `Base.astro` の `import FullscreenMenu` と `<FullscreenMenu />`、
+   `src/scripts/main.ts` の `setupMenu` を削除
+3. `Header.astro` の MENU ボタンを、`site.nav` を並べたリンク列に置き換える
+   （フッターのリンク列は残るので、到達性は保たれる）
 
 #### i. `robots.txt`
 
 `src/pages/robots.txt.ts` を削除。noindex は meta 側（§3.2-d）で管理しているので
 クロール制御が消えるわけではありません。
 
-#### j. LocalBusiness + NAP 表示
+#### j. LocalBusiness + アクセスの節
 
-既定でコメントアウト済み。完全に消すなら:
+店舗が無いだけなら `site.ts` の `business: { … }` を削除するだけで、
+アクセスの節と LocalBusiness の JSON-LD が両方消えます（`Access.astro` は
+`business` が無いと何も出力しない）。`site.nav` の `/#access` も外すこと。
+仕組みごと消すなら加えて:
 
-1. `src/content/site.ts` の `BusinessConfig` 型、`business?:` フィールド、
-   コメントアウトされた `business: { … }` の例を削除
-2. `src/components/BusinessInfo.astro` を削除
-3. `src/pages/contact.astro` と `src/pages/about.astro` の `import BusinessInfo` と
-   `<BusinessInfo />` を削除
+1. `src/content/site.ts` の `BusinessConfig` 型と `business?:` フィールドを削除
+2. `src/components/sections/Access.astro` と `src/lib/hours.ts`（とテスト）を削除し、
+   `index.astro` の `<Access>` を削除
+3. `src/components/sections/Contact.astro` の電話（`tel`）の項目を削除
 4. `src/lib/seo/jsonld.ts` の `localBusinessNode` と、`siteGraph` 内の
    `const business = localBusinessNode(…)` の2行を削除
 5. `src/lib/seo/jsonld.test.ts` の LocalBusiness テストを削除
@@ -184,7 +199,9 @@ Analytics、GSC メタ、theme-color、ダークモード。
 #### n. reduced-motion 対応
 
 `src/styles/global.css` の `@media (prefers-reduced-motion: reduce)` ブロックを
-削除。現状これが効いているのは FAQ の `+` 記号の回転だけです。
+削除。CSS のトランジション（ボタン・ホバー・FAQ の記号）に効いています。
+GSAP の動きは別の仕組み（`has-motion`、§3.4-c）で止めているので、ここを
+消しても reduced-motion の人に GSAP が動き出すことはありません。
 
 #### o. スキップリンク
 
@@ -261,15 +278,6 @@ Analytics、GSC メタ、theme-color、ダークモード。
    `theme_color` / `background_color` に使っている** ので、PWA を残すなら
    リテラルに置き換える
 
-#### g. ダークモード
-
-1. `src/styles/global.css`: `@media (prefers-color-scheme: dark) { :root { … } }`
-   を削除し、`color-scheme: light dark` を `light` に変更
-2. `src/content/site.ts`: `seo.themeColorDark` を削除
-3. `src/components/SEO.astro`: `themeColorDark` の props と、2本立ての
-   `theme-color` を単一の `<meta name="theme-color" content={themeColor} />` に
-4. `public/_headers` などに記載はなし
-
 #### j. パンくず（表示）
 
 1. `src/components/Breadcrumbs.astro` を削除（`Base.astro` が型
@@ -303,6 +311,36 @@ Analytics、GSC メタ、theme-color、ダークモード。
 > パンくずの表示は維持。
 
 ---
+
+### 3.4 デザイン
+
+#### a. ローディング画面
+
+1. `src/components/Loader.astro` と `src/scripts/loader.ts` を削除
+2. `Base.astro` の `import Loader` と `<Loader />` を削除
+3. `src/scripts/main.ts` の `await playLoader();` を
+   `await document.fonts.ready;` に置き換える（SplitText はフォント確定後に
+   文字を分割する必要があるため）
+
+#### b. Google Fonts
+
+1. `Base.astro` の `fonts.googleapis.com` / `fonts.gstatic.com` の `<link>` 3本を削除
+2. `global.css` の `--font-serif` / `--font-display` の先頭の
+   `"Noto Serif JP"` / `"Cormorant Garamond"` を削除（後ろのシステム明朝が使われる）
+3. `public/_headers` の CSP 雛形から `fonts.googleapis.com` / `fonts.gstatic.com` を削除
+
+#### c. スクロール演出（GSAP）
+
+動きを全部止めるなら、`Base.astro` の `has-motion` を付けるインライン
+スクリプトを削除するだけで足ります（初期状態の CSS がすべて無効になり、
+`main.ts` も演出を再生しない）。コードごと消すなら加えて:
+
+1. `src/scripts/{loader,hero,reveals}.ts` を削除し、`main.ts` を
+   `setupHeader(); setupMenu();` だけにする（§3.4-a も参照）
+2. `global.css` の Motion 節と、`Hero.astro` の「Intro initial states」を削除
+3. 各部品の `data-reveal*` / `data-hero-*` / `data-parallax` 属性は残っても
+   害はないが、掃除するなら削除
+4. メニューとヘッダーも GSAP を使うので、`gsap` 依存は B7 を消すまで残す
 
 ## 4. 消す前のチェック
 
@@ -395,13 +433,13 @@ URL がビルド出力に存在するかを照合するようにしました。H
 
 `site.ts` の `seo.themeColor` を読んでいる先が3つあります。
 
-| 読み手                                        | 用途                                      |
-| --------------------------------------------- | ----------------------------------------- |
-| `SEO.astro`                                   | `<meta name="theme-color">`（light/dark） |
-| `site.webmanifest.ts`                         | `theme_color` と `background_color`       |
-| （`global.css` の `--color-bg` と手動で同期） | 実際の背景色                              |
+| 読み手                                        | 用途                                |
+| --------------------------------------------- | ----------------------------------- |
+| `SEO.astro`                                   | `<meta name="theme-color">`         |
+| `site.webmanifest.ts`                         | `theme_color` と `background_color` |
+| （`global.css` の `--color-bg` と手動で同期） | 実際の背景色                        |
 
-「ダークモードを消す」「PWA を消す」「theme-color を消す」の3つが同じ設定値を
+「PWA を消す」「theme-color を消す」の2つが同じ設定値を
 共有しているため、消す範囲が重なります。特に **PWA を残して theme-color だけ
 消す**と `site.webmanifest.ts` が未定義を出力します。
 
@@ -411,13 +449,10 @@ URL がビルド出力に存在するかを照合するようにしました。H
 
 ### 5-5. Typography は実質常設 🟡
 
-`about` / `contact` / `legal` / `404` / `index` がすべて
-`<article class="prose">` で本文を組んでいます。`@tailwindcss/typography` と
-`global.css` の `--tw-prose-*` トークン束ねを消すと、全ページの本文が**素の
-HTML の見た目に戻ります**（ビルドもテストも通るので、目で見るまで気づきません）。
-
-Typography ごと外したい場合は、全ページの本文をユーティリティクラスで
-組み直すのがセットになります。
+使っているのはサイトポリシーの節（`sections/Policy.astro` の `prose`）だけ
+です。`@tailwindcss/typography` と `--tw-prose-*` の束ねを消すと、その節の本文が
+**素の HTML の見た目に戻ります**（ビルドもテストも通るので、目で見るまで
+気づきません）。外すなら、その節を部品内の `<style>` で組み直すのがセットです。
 
 ### 5-7. `tap-target` の寸法の複製 ✅ 共通化済み
 

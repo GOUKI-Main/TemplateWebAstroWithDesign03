@@ -2,7 +2,9 @@
 import type { ImageMetadata } from "astro";
 import SEO, { type ArticleMeta } from "../components/SEO.astro";
 import Header from "../components/Header.astro";
+import FullscreenMenu from "../components/FullscreenMenu.astro";
 import Footer from "../components/Footer.astro";
+import Loader from "../components/Loader.astro";
 import SkipLink from "../components/SkipLink.astro";
 import Cloudflare from "../components/Cloudflare.astro";
 // The breadcrumb item shape is owned by the component that renders it, not by
@@ -126,21 +128,52 @@ const graph = siteGraph({
       article={article}
       jsonLd={graph}
     />
+
+    {
+      /* The design's two faces. display=swap: text shows at once in the
+         fallback face from --font-serif / --font-display, then swaps. The
+         loader waits on document.fonts.ready, so first-time visitors rarely
+         see the swap. Widen the CSP in public/_headers if you enable it. */
+    }
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Serif+JP:wght@200;300;400;500&display=swap"
+    />
+
+    <script is:inline>
+      // Every "hidden until it animates in" state in the CSS is scoped to
+      // .has-motion. It is added only when JS runs AND the visitor has not
+      // asked for reduced motion, so for everyone else all content is
+      // visible from the first paint. Inline and in <head> so the class is
+      // there before the body renders (no flash of visible-then-hidden).
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.documentElement.classList.add("has-motion");
+      }
+    </script>
     <Cloudflare />
   </head>
 
-  <body class="flex min-h-dvh flex-col bg-bg font-sans text-fg antialiased">
+  <body class="flex min-h-dvh flex-col">
+    <Loader />
     <SkipLink />
     <Header />
+    <FullscreenMenu />
+    {
+      /* data-menu-background: made inert while the fullscreen menu is open
+         (src/scripts/menu.ts). */
+    }
     <main
       id="main"
-      class:list={[
-        "container-page flex-1 py-10",
-        { "grid place-items-center": mainCentered },
-      ]}
+      data-menu-background
+      class:list={["flex-1", { "grid place-items-center": mainCentered }]}
     >
       <slot />
     </main>
     <Footer />
+    <script>
+      import "../scripts/main";
+    </script>
   </body>
 </html>

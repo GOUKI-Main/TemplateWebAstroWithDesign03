@@ -1,15 +1,21 @@
 # TemplateWebAstro
 
-A boring, production-ready Astro **website template** — HTML-first, ~2 kB of
-runtime JavaScript, and wired for marketing/SEO out of the box. Static pages
-only: there is no blog.
+A production-ready Astro **website template with a finished design** — an
+elegant one-page site (white gallery look, gold hairlines, Noto Serif JP +
+Cormorant Garamond) with GSAP loading, scroll-reveal and menu animations, wired
+for marketing/SEO out of the box. Static only: there is no blog.
 
 ## Make a site from this template (日本語)
 
 1. GitHub で **Use this template** → 新しいリポジトリを作る
 2. そのリポジトリを Claude Code で開き、「セットアップして」と送る
    （または `/setup`）
-3. Claude の質問（サイト名・事業内容・ページ構成・配色など14問）に答える
+3. Claude の質問（サイト名・事業内容・載せる節・配色など14問）に答える
+
+デザイン（配色・書体・アニメーション）は最初から入っています。トップ1ページに
+ヒーロー / コンセプト / メニュー / ギャラリー / スタッフ / よくある質問 /
+アクセス / お問い合わせ / サイトポリシー の節が並び、質問への答えで中身を
+埋めていきます。写真は見本（ネイルサロン）なので差し替えてください。
 
 質問の一覧と、各回答がどのファイルに入るかは [`CLAUDE.md`](CLAUDE.md) の
 「第1部 初期セットアップ」にあります。`pnpm check:setup` で未設定の項目を
@@ -66,9 +72,10 @@ export const site = {
   sameAs, // brand social profiles -> Organization.sameAs
   author, // -> Person (sameAs from author.socials)
   business, // optional: enables LocalBusiness + visible NAP (§4 MEO)
-  contactFormUrl, // optional external form linked from /contact
-  nav,
-  footerNav, // secondary links (policy pages)
+  brand, // wordmark + diamond-mark initial (hero, loader, header, footer)
+  contactFormUrl, // optional external form linked from the contact section
+  nav, // fullscreen menu: "/#section" links, `en` caption, `children`
+  footerNav, // secondary links (the policy section)
   seo: {
     ogImage,
     ogImageWidth,
@@ -116,20 +123,22 @@ Never put a real secret in this file.
 
 **Content**
 
-- Placeholder pages (home, about, contact, site policy, 404) filled in by the
-  setup interview; FAQ via native `<details>`; visible NAP from
-  `site.business`
+- One page (`src/pages/index.astro`) of section components in
+  `src/components/sections/`, with placeholder copy and sample photos filled
+  in by the setup interview; FAQ via native `<details>`; the access section's
+  address/phone/hours come from `site.business`, the same data as the
+  LocalBusiness JSON-LD; a designed 404
 
 **Performance & a11y**
 
-- ~2 kB of runtime JS (link prefetching only — see [Runtime
-  JavaScript](#runtime-javascript)); system fonts only — no web-font
-  download, no font license to ship
+- Motion is progressive enhancement: everything starts visible unless JS runs
+  **and** the visitor allows motion (`.has-motion`) — see
+  [Runtime JavaScript](#runtime-javascript)
 - Long-term immutable caching for hashed assets (`public/_headers` →
   `/_astro/*`)
-- Dark mode from the OS preference, no toggle and no flash of the wrong theme
-- Semantic HTML; skip link; `aria-current` on active nav/crumb; JS-free mobile
-  menu (`<details>`); `prefers-reduced-motion` respected
+- Light-only palette by design (`color-scheme: light`)
+- Semantic HTML; skip link; fullscreen menu with focus trap, Escape and
+  `inert` background; `prefers-reduced-motion` turns all GSAP motion off
 - Mobile-hardened: no horizontal page scroll at 320px, 44px touch targets on
   touch devices, `dvh` viewport units — see [Mobile](#mobile)
 
@@ -184,18 +193,31 @@ Four rules keep it that way — break one and the phone layout goes with it:
    the viewport as if the URL bar were hidden, which leaves the footer below the
    fold on short pages.
 
-4. **The mobile menu is a `<details>` disclosure** with `max-h-[75dvh]` and its
-   own scroll, so a long nav stays usable on a short or landscape screen.
+4. **The fullscreen menu scrolls inside itself** (`overflow-y: auto`), so a
+   long nav stays usable on a short or landscape screen.
 
 ## Runtime JavaScript
 
-One module, ~2.3 kB, on every page: Astro's link prefetcher
-(`prefetch: { prefetchAll: true, defaultStrategy: "hover" }` in
-`astro.config.mjs`). Nothing else ships JS — the mobile menu, the FAQ and dark
-mode are all CSS/HTML.
+Two bundles: Astro's link prefetcher (~2.3 kB) and the design's motion in
+`src/scripts/` (GSAP + ScrollTrigger, ScrollToPlugin, SplitText):
 
-Delete the `prefetch` block for a strictly zero-JS build, or keep the runtime
-and opt individual links in with `data-astro-prefetch`.
+| File         | What it does                                                   |
+| ------------ | -------------------------------------------------------------- |
+| `loader.ts`  | First-visit loading screen (once per session)                  |
+| `hero.ts`    | Wordmark letters rise, subtitle tracking opens, photo wipes in |
+| `reveals.ts` | Scroll reveals driven by `data-reveal*` attributes; parallax   |
+| `header.ts`  | Frosted header + progress line; smooth in-page anchor scroll   |
+| `menu.ts`    | Fullscreen menu open/close, focus trap, Escape                 |
+| `motion.ts`  | Shared easing/durations (mirrors `--ease-*` in `global.css`)   |
+
+Every hidden-before-reveal state is scoped to `html.has-motion`, which the
+inline script in `Base.astro` adds only when JS runs and
+`prefers-reduced-motion` is off — so with JS disabled or motion reduced, every
+section is visible immediately and the loader never appears. The reveal
+vocabulary (`data-reveal`, `data-reveal-mask`, `data-reveal-group` /
+`data-reveal-item`, `data-reveal-line`, `data-reveal-lines`, `data-parallax`)
+is documented at the top of `src/scripts/reveals.ts`; use it on new sections
+instead of writing new animation code.
 
 ## Styling (Tailwind 4)
 
@@ -204,54 +226,58 @@ inside an `@theme` block and become **both** CSS variables and utilities:
 
 ```css
 @theme {
-  --color-bg: #fbfbf9; /* -> bg-bg / text-bg / border-bg ... */
-  --color-fg: #1a1a1a;
-  --color-link: #0b3d91;
+  --color-bg: #ffffff; /* -> bg-bg / text-bg ... and var(--color-bg) */
+  --color-fg: #333333; /* headings */
+  --color-body: #555555; /* body copy */
+  --color-muted: #888888; /* labels */
+  --color-accent: #c9a87c; /* gold */
 }
 ```
 
-**Use only these tokens** (`bg-bg`, `text-fg`, `text-muted`, `border-border`,
-`bg-surface`, `text-link`). A raw hex or a stock Tailwind color like
-`text-gray-700` will not follow dark mode.
+Components style themselves in scoped `<style>` blocks that read these
+variables (`var(--color-fg)`); utilities (`text-fg`, `bg-surface`, …) work
+too. **Use only the tokens** — a raw hex or a stock Tailwind color like
+`text-gray-700` bypasses the palette. The full list (bg, fg, body, muted, link,
+border, surface, accent, accent-light, ink, on-ink, overlay) is commented in
+`global.css`. Shared pieces — `.section`, `.section-label`, `.divider`, `.btn`,
+`.btn-light`, `.font-en`, `.img-hover-zoom` — live in its `@layer components`.
 
-### Dark mode
-
-Driven purely by `prefers-color-scheme`: the media query redefines the same
-`--color-*` variables, so every utility re-themes at once. No toggle, no
-`localStorage`, no inline script, and therefore no flash of the wrong theme.
-`<meta name="theme-color">` is emitted twice (light/dark) from
-`site.seo.themeColor` / `themeColorDark` — keep those in sync with `--color-bg`.
+The palette is light only. `<meta name="theme-color">` comes from
+`site.seo.themeColor` — keep it in sync with `--color-bg`.
 
 ### Page copy
 
 `@tailwindcss/typography` styles page copy via `<article class="prose">`, and its
 `--tw-prose-*` variables are bound to the design tokens in `global.css` — so
-long-form copy is exactly the same color as the rest of the site, in both
-themes. Preflight replaces a hand-written reset.
+long-form copy is exactly the same color as the rest of the site in the
+places it is used (policy section, 404). Preflight replaces a hand-written reset.
 
-## 日本語フォント
+## フォント
 
-No web font is bundled: `--font-sans` in `global.css` is a system stack
-(`Hiragino Sans`, `Noto Sans JP`, `Yu Gothic`, `Meiryo`, …), so there is
-nothing to download and no font license to distribute. If typography must be
-identical across devices, add a font through Astro's Fonts API (`fonts` in
-`astro.config.mjs` + `<Font>` in `SEO.astro`) and ship its license file
-(e.g. SIL OFL) next to the font files.
+Noto Serif JP (body) and Cormorant Garamond (wordmark, labels) are loaded from
+Google Fonts in `Base.astro` with `display=swap`; `--font-serif` /
+`--font-display` in `global.css` fall back to Mincho system faces. Both fonts
+are SIL OFL and served by Google, so there is no license file to ship. If you
+enable the CSP in `public/_headers`, it already allows `fonts.googleapis.com`
+and `fonts.gstatic.com`.
 
 ## Project structure
 
 ```
 src/
-├─ components/   Header, NavLinks, Footer, SEO, SkipLink, Cloudflare,
-│                Breadcrumbs, FAQ, BusinessInfo
+├─ components/   Header, FullscreenMenu, Loader, BrandMark, Footer,
+│                SectionTitle, FAQ, SEO, SkipLink, Cloudflare, Breadcrumbs
+│  └─ sections/  Hero, Concept, MenuSection, Gallery, Staff, Access,
+│                Contact, Policy
 ├─ content/      site.ts (config)
-├─ layouts/      Base.astro (head + JSON-LD graph + shell)
+├─ layouts/      Base.astro (head + fonts + JSON-LD graph + shell)
 ├─ lib/          seo/jsonld.ts (graph builders), noindex.ts (path match
-│                shared by meta robots + sitemap) — each with a *.test.ts
-├─ pages/        index, about, contact, legal, 404,
-│                robots.txt, site.webmanifest
-├─ assets/       fonts/ (and images/ for your photos — optimized at build)
-└─ styles/       global.css (@theme tokens, dark mode, prose bindings)
+│                shared by meta robots + sitemap), hours.ts (opening hours
+│                → 日本語) — each with a *.test.ts
+├─ pages/        index (the whole site), 404, robots.txt, site.webmanifest
+├─ scripts/      GSAP motion (see Runtime JavaScript)
+├─ assets/       images/ (sample photos — optimized at build)
+└─ styles/       global.css (@theme tokens, shared components, motion states)
 
 scripts/         check-links.mjs (internal link check over dist/),
                  check-setup.mjs (template placeholders left),

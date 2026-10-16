@@ -1,10 +1,115 @@
 ---
 import Base from "../layouts/Base.astro";
 import { site } from "../content/site";
+import Hero from "../components/sections/Hero.astro";
+import Concept from "../components/sections/Concept.astro";
+import MenuSection, {
+  type MenuCategory,
+} from "../components/sections/MenuSection.astro";
+import Gallery, {
+  type GalleryItem,
+} from "../components/sections/Gallery.astro";
+import Staff, { type StaffMember } from "../components/sections/Staff.astro";
 import FAQ from "../components/FAQ.astro";
+import Access from "../components/sections/Access.astro";
+import Contact from "../components/sections/Contact.astro";
+import Policy from "../components/sections/Policy.astro";
 
-// TODO(setup): Q11 トップページ — 強み3つ / 提供内容 / 行動喚起（CTA）
-// TODO(setup): Q12 よくある質問（不要なら FAQ ごと削除）
+// The whole site is this one page; each section has an id that site.nav
+// links to ("/#menu"). Remove a section by deleting its tag here and its
+// entry in site.nav. Everything below is placeholder copy and sample photos.
+
+// TODO(setup): Q10 掲載する写真（src/assets/images/ に置いて import を差し替える）
+import heroImage from "../assets/images/hero.png";
+import sample1 from "../assets/images/sample-1.png";
+import sample2 from "../assets/images/sample-2.png";
+import sample3 from "../assets/images/sample-3.png";
+import sample4 from "../assets/images/sample-4.png";
+import sample5 from "../assets/images/sample-5.png";
+import interior from "../assets/images/interior.png";
+
+// TODO(setup): Q11 コンセプト（大きな一文を2〜3行 + 短い段落を2〜3つ）
+const concept = {
+  heading: [
+    "「ひとことで伝わる約束」",
+    "お客様にとっての価値を、",
+    "短く言い切る場所",
+  ],
+  paragraphs: [
+    "はじめた理由や、大切にしている考え方を\n2行ほどで書きます。",
+    "どんな方に、どんな時間や体験を届けたいのかを\n具体的に書きます。",
+    "最後に、お客様への約束で締めくくります。",
+  ],
+};
+
+// TODO(setup): Q11 メニュー・料金（カテゴリーごとに写真1枚と項目）
+const menu: MenuCategory[] = [
+  {
+    title: "MENU A",
+    titleJp: "メニューA",
+    image: sample1,
+    alt: "メニューAの施術例",
+    items: [
+      { name: "メニュー項目", price: "¥0,000〜" },
+      { name: "メニュー項目", price: "¥0,000〜" },
+      { name: "メニュー項目", price: "¥0,000〜" },
+    ],
+  },
+  {
+    title: "MENU B",
+    titleJp: "メニューB",
+    image: sample5,
+    alt: "メニューBの施術例",
+    items: [
+      { name: "メニュー項目", price: "¥0,000〜" },
+      { name: "メニュー項目", price: "¥0,000〜" },
+      { name: "メニュー項目", price: "¥0,000〜" },
+    ],
+  },
+  {
+    title: "MENU C",
+    titleJp: "メニューC",
+    image: sample4,
+    alt: "メニューCの施術例",
+    items: [
+      { name: "メニュー項目", price: "¥0,000〜" },
+      { name: "メニュー項目", price: "¥0,000〜" },
+      { name: "メニュー項目", price: "¥0,000〜" },
+    ],
+  },
+];
+
+// TODO(setup): Q11 ギャラリー（3の倍数枚がきれいに並ぶ。alt は写真の内容を説明する文に）
+const gallery: GalleryItem[] = [
+  { src: sample1, alt: "作品例1の写真", category: "Category" },
+  { src: sample2, alt: "作品例2の写真", category: "Category" },
+  { src: sample3, alt: "作品例3の写真", category: "Category" },
+  { src: sample4, alt: "作品例4の写真", category: "Category" },
+  { src: sample5, alt: "作品例5の写真", category: "Category" },
+  { src: interior, alt: "店内の様子", category: "Space" },
+];
+
+// TODO(setup): Q11 スタッフ紹介（写真があれば photo に import した画像を入れる）
+const staff: StaffMember[] = [
+  {
+    name: "山田 花子",
+    nameEn: "Hanako Yamada",
+    role: "代表",
+    description:
+      "経歴や資格、お客様に向き合うときに大切にしていることを2〜3文で書きます。",
+    speciality: "得意なこと / 専門分野",
+  },
+  {
+    name: "佐藤 太郎",
+    nameEn: "Taro Sato",
+    role: "スタッフ",
+    description:
+      "経歴や資格、お客様に向き合うときに大切にしていることを2〜3文で書きます。",
+    speciality: "得意なこと / 専門分野",
+  },
+];
+
+// TODO(setup): Q12 よくある質問（不要なら faqs と <FAQ> を削除し、site.nav からも外す）
 const faqs = [
   {
     q: "よくある質問1",
@@ -14,32 +119,30 @@ const faqs = [
     q: "よくある質問2",
     a: "回答をここに書きます。",
   },
+  {
+    q: "よくある質問3",
+    a: "回答をここに書きます。",
+  },
 ];
 ---
 
 <Base description={site.description} canonicalPath="/">
-  <article class="prose">
-    <h1>{site.tagline}</h1>
-    <p class="lead">{site.description}</p>
-
-    <section>
-      <h2>選ばれる理由</h2>
-      <ul>
-        <li><strong>強み1</strong> — 具体的な説明。</li>
-        <li><strong>強み2</strong> — 具体的な説明。</li>
-        <li><strong>強み3</strong> — 具体的な説明。</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>提供しているもの</h2>
-      <p>商品・サービス・メニューの概要をここに書きます。</p>
-    </section>
-
-    <p>
-      <a href="/contact">お問い合わせはこちら</a>
-    </p>
-  </article>
-
+  <Hero
+    image={heroImage}
+    alt={`${site.name}のイメージ写真`}
+    actions={[
+      { label: "お問い合わせ", href: "/#contact" },
+      { label: "メニュー", href: "/#menu" },
+    ]}
+  />
+  <Concept heading={concept.heading} paragraphs={concept.paragraphs} />
+  <MenuSection heading="メニューのご案内" categories={menu} />
+  <Gallery heading="ギャラリー" items={gallery} />
+  <Staff heading="スタッフ紹介" members={staff} />
   <FAQ items={faqs} />
+  <Access heading="アクセス" />
+  <Contact
+    lead="ご予約・ご相談はお気軽にどうぞ。通常2営業日以内にご返信します。"
+  />
+  <Policy />
 </Base>

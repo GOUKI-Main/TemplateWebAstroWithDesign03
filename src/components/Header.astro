@@ -1,61 +1,155 @@
 ---
-import { site, type SiteNavItem } from "../content/site";
-import NavLinks from "./NavLinks.astro";
+import { site } from "../content/site";
+import BrandMark from "./BrandMark.astro";
 
-const { brand = site.name, nav = site.nav } = Astro.props as {
-  brand?: string;
-  nav?: SiteNavItem[];
-};
+// Fixed, transparent over the hero; frosted glass with a gold scroll-progress
+// hairline once the page has scrolled (src/scripts/header.ts toggles
+// .is-scrolled). The links live in the fullscreen menu, opened by MENU.
+// Without JavaScript the button does nothing — the footer repeats every
+// link, so nothing becomes unreachable.
 ---
 
-{
-  /* sticky (not fixed) so the header keeps its own space in the flow — no
-     magic top padding on <main>. bg + z keep scrolled content from showing
-     through, and `sticky` is the positioned ancestor the mobile menu panel
-     anchors to. */
-}
-<header class="sticky top-0 z-40 w-full border-b border-border bg-bg">
-  <div class="container-page flex items-center justify-between gap-4 py-4">
-    <a class="tap-target font-bold tracking-tight no-underline" href="/"
-      >{brand}</a
-    >
-
-    {
-      /* One landmark, two renderings: a disclosure on small screens and an
-         inline row from md up. <details> gives an accessible, keyboard-
-         operable menu with zero JavaScript; navigating reloads the page,
-         which closes it. */
-    }
-    <nav aria-label="主要ナビゲーション">
-      <details class="md:hidden">
-        {
-          /* list-none + marker:content-[''] look redundant next to
-             tap-target's `display: inline-flex` (which removes the marker box
-             outright) — they are the fallback if that display is ever
-             overridden, which is cheap insurance for the site's only
-             JavaScript-free navigation control. */
-        }
-        <summary
-          class="tap-target cursor-pointer list-none rounded-lg border border-border px-3 text-sm marker:content-['']"
-        >
-          メニュー
-        </summary>
-        {
-          /* max-height so a long nav scrolls inside the panel instead of
-            running off a short (or landscape) phone screen. */
-        }
-        <div
-          class="absolute inset-x-0 top-full max-h-[75dvh] overflow-y-auto overscroll-contain border-b border-border bg-bg"
-        >
-          <div class="container-page py-2">
-            <NavLinks items={nav} block />
-          </div>
-        </div>
-      </details>
-
-      <div class="hidden md:block">
-        <NavLinks items={nav} />
-      </div>
-    </nav>
-  </div>
+<header class="header" data-header data-menu-background>
+  <a
+    href="/"
+    class="header__logo tap-target"
+    aria-label={`${site.name} トップへ`}
+  >
+    <BrandMark class="header__mark" />
+  </a>
+  <button
+    type="button"
+    class="header__menu-btn tap-target"
+    data-menu-toggle
+    aria-label="メニューを開く"
+    aria-expanded="false"
+    aria-controls="fullscreen-menu"
+  >
+    <span class="header__menu-text">MENU</span>
+  </button>
+  <span class="header__progress" data-scroll-progress aria-hidden="true"></span>
 </header>
+
+<style>
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 32px;
+    pointer-events: none;
+    transition:
+      background var(--transition-base),
+      box-shadow var(--transition-base),
+      padding var(--transition-base);
+  }
+
+  .header:global(.is-scrolled) {
+    background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+    padding: 12px 32px;
+    pointer-events: auto;
+  }
+
+  .header__logo,
+  .header__menu-btn {
+    pointer-events: auto;
+  }
+
+  /* 1px gold line showing how far down the page you are */
+  .header__progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 1px;
+    background: var(--color-accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    opacity: 0;
+    transition: opacity var(--transition-base);
+  }
+
+  .header:global(.is-scrolled) .header__progress {
+    opacity: 1;
+  }
+
+  .header__logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header__logo :global(.header__mark) {
+    --mark-size: 48px;
+    --mark-font: 1.15rem;
+    background: color-mix(in srgb, var(--color-bg) 85%, transparent);
+    backdrop-filter: blur(8px);
+    transition:
+      width var(--transition-base),
+      height var(--transition-base);
+  }
+
+  .header:global(.is-scrolled) .header__logo :global(.header__mark) {
+    --mark-size: 40px;
+  }
+
+  .header__menu-btn {
+    padding: 10px 22px;
+    border: 1.5px solid var(--color-fg);
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--color-bg) 85%, transparent);
+    backdrop-filter: blur(8px);
+    transition: all var(--transition-base);
+  }
+
+  .header__menu-btn:hover {
+    background: var(--color-fg);
+  }
+
+  .header__menu-btn:hover .header__menu-text {
+    color: var(--color-bg);
+  }
+
+  .header__menu-text {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    line-height: 1;
+    letter-spacing: 0.2em;
+    color: var(--color-fg);
+    transition: color var(--transition-base);
+  }
+
+  @media (max-width: 768px) {
+    .header {
+      padding: 14px 16px;
+    }
+
+    .header:global(.is-scrolled) {
+      padding: 10px 16px;
+    }
+
+    .header__logo :global(.header__mark) {
+      --mark-size: 40px;
+      --mark-font: 1rem;
+    }
+
+    .header:global(.is-scrolled) .header__logo :global(.header__mark) {
+      --mark-size: 36px;
+    }
+
+    .header__menu-btn {
+      padding: 8px 16px;
+    }
+
+    .header__menu-text {
+      font-size: 0.7rem;
+    }
+  }
+</style>

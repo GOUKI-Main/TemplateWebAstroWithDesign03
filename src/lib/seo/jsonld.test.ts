@@ -10,6 +10,7 @@ const base = "https://example.com/";
 
 const testSite: SiteConfig = {
   url: "https://example.com",
+  brand: { wordmark: "TEST", initial: "T" },
   name: "Test Site",
   tagline: "tagline",
   description: "description",

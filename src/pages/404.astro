@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import SectionTitle from "../components/SectionTitle.astro";
 
 const title = "ページが見つかりません";
 const description = "お探しのページは存在しません。";
@@ -12,14 +13,23 @@ const description = "お探しのページは存在しません。";
   robots="noindex,nofollow"
   mainCentered
 >
-  <article class="prose">
-    <h1>404 — ページが見つかりません</h1>
-    <p class="lead">
+  <section class="not-found section container-page">
+    <SectionTitle label="404 NOT FOUND" heading={title} />
+    <p class="text-center" data-reveal>
       お探しのページは存在しないか、移動された可能性があります。
     </p>
-
-    <p>
-      <a href="/">ホームへ戻る</a>
+    <p class="not-found__action text-center" data-reveal>
+      <a href="/" class="btn"><span>トップへ戻る</span></a>
     </p>
-  </article>
+  </section>
 </Base>
+
+<style>
+  .not-found {
+    padding-top: calc(var(--section-padding) + 40px);
+  }
+
+  .not-found__action {
+    margin-top: 2.5rem;
+  }
+</style>

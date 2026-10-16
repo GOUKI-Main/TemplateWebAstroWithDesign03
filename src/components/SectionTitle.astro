@@ -1,0 +1,32 @@
+---
+// The design's section opener: ( LABEL ), a gold hairline drawn downward,
+// then the heading. Each part reveals on scroll.
+const {
+  label,
+  heading,
+  id,
+  light = false,
+} = Astro.props as {
+  /** Latin label, shown as "( LABEL )". */
+  label: string;
+  /** Omit when the section supplies its own heading (concept). */
+  heading?: string;
+  /** id for the heading (aria-labelledby on the section). */
+  id?: string;
+  /** On the dark band (concept). */
+  light?: boolean;
+};
+---
+
+<p class="section-label text-center" data-reveal>( {label} )</p>
+<span
+  class:list={["divider", { "divider--light": light }]}
+  data-reveal-line="y"
+  aria-hidden="true"></span>
+{
+  heading && (
+    <h2 class="section-heading text-center" id={id} data-reveal>
+      {heading}
+    </h2>
+  )
+}
