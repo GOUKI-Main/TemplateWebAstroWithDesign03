@@ -1,0 +1,89 @@
+---
+import { site } from "../content/site";
+import BrandMark from "./BrandMark.astro";
+
+// First-visit loading screen (src/scripts/loader.ts): the mark and wordmark
+// fade in, a gold bar fills while the fonts and hero image load, then the
+// whole panel wipes upward. Played once per browser session.
+---
+
+<div class="loader" data-loader aria-hidden="true">
+  <div class="loader__inner">
+    <BrandMark class="loader__mark" data-loader-mark />
+    <p class="loader__wordmark" data-loader-wordmark>{site.brand.wordmark}</p>
+    <div class="loader__bar">
+      <span class="loader__bar-fill" data-loader-bar-fill></span>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Without .has-motion (JS off / reduced motion) the overlay does not exist
+     at all, so nobody can be trapped behind it. */
+  .loader {
+    display: none;
+  }
+
+  :global(html.has-motion) .loader {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    clip-path: inset(0 0 0 0);
+  }
+
+  .loader__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .loader__inner :global(.loader__mark) {
+    --mark-size: 56px;
+    --mark-font: 1.3rem;
+    opacity: 0;
+    /* The 45° turn lives in the same transform GSAP scales, so it is restated */
+    transform: rotate(45deg) scale(0.85);
+  }
+
+  .loader__wordmark {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    letter-spacing: 0.45em;
+    /* Cancels the extra space letter-spacing leaves after the last letter */
+    text-indent: 0.45em;
+    color: var(--color-muted);
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .loader__bar {
+    width: 140px;
+    height: 1px;
+    background: var(--color-border);
+    overflow: hidden;
+  }
+
+  .loader__bar-fill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--color-accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  @media (max-width: 768px) {
+    .loader__inner :global(.loader__mark) {
+      --mark-size: 48px;
+    }
+
+    .loader__bar {
+      width: 110px;
+    }
+  }
+</style>

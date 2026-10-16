@@ -1,0 +1,223 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import SectionTitle from "../SectionTitle.astro";
+
+// Price list: one photo + list per category, alternating sides. Each row is
+// name … dotted leader … price; the leader is drawn in on scroll.
+export type MenuCategory = {
+  /** Latin heading (e.g. "GEL NAIL"). */
+  title: string;
+  titleJp: string;
+  image: ImageMetadata;
+  /** Describes the photo; titleJp when omitted. */
+  alt?: string;
+  items: { name: string; price: string }[];
+};
+
+const {
+  label = "MENU",
+  heading,
+  categories,
+} = Astro.props as {
+  label?: string;
+  heading: string;
+  categories: MenuCategory[];
+};
+---
+
+<section class="menu-section section" id="menu" aria-labelledby="menu-heading">
+  <div class="container-page">
+    <SectionTitle label={label} heading={heading} id="menu-heading" />
+  </div>
+
+  <div class="menu-section__categories">
+    {
+      categories.map((category, index) => {
+        const isReverse = index % 2 === 1;
+        return (
+          <div
+            class:list={[
+              "menu-section__layout",
+              { "menu-section__layout--reverse": isReverse },
+            ]}
+          >
+            <div
+              class="menu-section__image-wrapper img-hover-zoom"
+              data-reveal-mask
+            >
+              <div class="menu-section__image-inner" data-reveal-scale>
+                <Image
+                  src={category.image}
+                  alt={category.alt ?? category.titleJp}
+                  widths={[400, 640]}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  format="webp"
+                  quality={80}
+                  loading="lazy"
+                />
+              </div>
+            </div>
+            <div
+              class="menu-section__info"
+              data-reveal-group
+              data-reveal-from={isReverse ? "right" : "left"}
+            >
+              <div class="menu-section__category-header" data-reveal-item>
+                <h3 class="menu-section__category-en">{category.title}</h3>
+                <span class="menu-section__category-jp">
+                  {category.titleJp}
+                </span>
+              </div>
+              <ul class="menu-section__list">
+                {category.items.map((item) => (
+                  <li class="menu-section__item" data-reveal-item>
+                    <span class="menu-section__item-name">{item.name}</span>
+                    <span
+                      class="menu-section__item-dots"
+                      data-reveal-line
+                      aria-hidden="true"
+                    />
+                    <span class="menu-section__item-price">{item.price}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        );
+      })
+    }
+  </div>
+</section>
+
+<style>
+  .menu-section__categories {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(60px, 10vw, 120px);
+    margin-top: clamp(40px, 6vw, 80px);
+  }
+
+  .menu-section__layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(30px, 5vw, 80px);
+    align-items: center;
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+  }
+
+  .menu-section__layout--reverse .menu-section__image-wrapper {
+    order: 2;
+  }
+
+  .menu-section__layout--reverse .menu-section__info {
+    order: 1;
+  }
+
+  .menu-section__image-wrapper {
+    aspect-ratio: 4 / 5;
+  }
+
+  /* The reveal's zoom goes on this wrapper, not the img, so it never fights
+     the img's own hover transition. */
+  .menu-section__image-inner {
+    width: 100%;
+    height: 100%;
+  }
+
+  .menu-section__image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .menu-section__info {
+    padding: clamp(20px, 3vw, 40px) 0;
+  }
+
+  .menu-section__category-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .menu-section__category-en {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: var(--color-fg);
+    margin-bottom: 0.25rem;
+  }
+
+  .menu-section__category-jp {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    letter-spacing: 0.15em;
+  }
+
+  .menu-section__list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .menu-section__item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 0.9rem;
+  }
+
+  .menu-section__item-name {
+    color: var(--color-fg);
+  }
+
+  .menu-section__item-dots {
+    flex: 1;
+    min-width: 1.5rem;
+    border-bottom: 1px dotted var(--color-border);
+    margin-bottom: 4px;
+    transform-origin: left center;
+  }
+
+  .menu-section__item-price {
+    white-space: nowrap;
+    font-family: var(--font-display);
+    color: var(--color-muted);
+    letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 768px) {
+    .menu-section__categories {
+      gap: clamp(40px, 8vw, 60px);
+    }
+
+    .menu-section__layout {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .menu-section__layout--reverse .menu-section__image-wrapper {
+      order: 0;
+    }
+
+    .menu-section__layout--reverse .menu-section__info {
+      order: 0;
+    }
+
+    .menu-section__image-wrapper {
+      aspect-ratio: 16 / 10;
+    }
+
+    .menu-section__category-en {
+      font-size: clamp(1.4rem, 5vw, 1.8rem);
+    }
+
+    .menu-section__item {
+      font-size: 0.85rem;
+    }
+  }
+</style>

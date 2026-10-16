@@ -1,0 +1,42 @@
+---
+import { site } from "../content/site";
+
+// The diamond logo mark (site.brand.initial in a square turned 45°), shared by
+// the header, the fullscreen menu, the loader and the footer. Each caller
+// sizes and colors it through custom properties instead of re-drawing it:
+//   --mark-size   box edge (default 48px)
+//   --mark-font   letter size (default 1.15rem)
+//   --mark-color  border + letter (default --color-fg)
+//   --mark-border border width (default 1.5px)
+const { class: className, ...rest } = Astro.props as {
+  class?: string;
+  [key: string]: unknown;
+};
+---
+
+<span class:list={["brand-mark", className]} aria-hidden="true" {...rest}>
+  <span class="brand-mark__initial">{site.brand.initial}</span>
+</span>
+
+<style>
+  .brand-mark {
+    width: var(--mark-size, 48px);
+    height: var(--mark-size, 48px);
+    border: var(--mark-border, 1.5px) solid var(--mark-color, var(--color-fg));
+    transform: rotate(45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .brand-mark__initial {
+    transform: rotate(-45deg);
+    font-family: var(--font-display);
+    font-size: var(--mark-font, 1.15rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--mark-color, var(--color-fg));
+  }
+</style>

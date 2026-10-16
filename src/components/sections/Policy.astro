@@ -1,0 +1,62 @@
+---
+import { site } from "../../content/site";
+import SectionTitle from "../SectionTitle.astro";
+
+// TODO(setup): Q13 法的表記 — プライバシーポリシー / 免責事項。通信販売・オンライン
+// 決済をする場合は、特定商取引法に基づく表記の節をここに足す。
+---
+
+<section class="policy section" id="policy" aria-labelledby="policy-heading">
+  <div class="policy__inner container-page">
+    <SectionTitle label="POLICY" heading="サイトポリシー" id="policy-heading" />
+
+    <div class="prose policy__body" data-reveal>
+      <h3>プライバシーポリシー</h3>
+      <p>
+        お問い合わせでお預かりした個人情報は、ご返信のためにのみ利用し、法令に基づく場合を除いて第三者に提供しません。
+      </p>
+      <p>
+        当サイトでは、利用状況の把握のためにCookieを使用しないアクセス解析を利用する場合があります。
+      </p>
+
+      <h3>免責事項</h3>
+      <p>
+        当サイトの情報は正確さに努めていますが、その内容を保証するものではありません。掲載内容は予告なく変更・削除する場合があります。
+      </p>
+
+      {
+        site.author.email && (
+          <>
+            <h3>お問い合わせ窓口</h3>
+            <p>
+              {site.business?.legalName ?? site.name}（{site.author.name}）
+              <br />
+              <a href={`mailto:${site.author.email}`}>{site.author.email}</a>
+            </p>
+          </>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .policy__inner {
+    max-width: 800px;
+  }
+
+  .policy__body {
+    max-width: none;
+    margin-top: clamp(32px, 5vw, 48px);
+    font-size: 0.85rem;
+    line-height: 2;
+  }
+
+  .policy__body :global(h3) {
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+</style>

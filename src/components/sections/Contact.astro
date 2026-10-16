@@ -1,0 +1,138 @@
+---
+import { site } from "../../content/site";
+import SectionTitle from "../SectionTitle.astro";
+
+// Every contact channel comes from site.ts (contactFormUrl, author.email,
+// business.telephone, a LINE URL in sameAs); this section only decides the
+// order and the wording. No form JavaScript is shipped — an external form is
+// a plain link.
+const {
+  label = "CONTACT",
+  heading = "お問い合わせ",
+  lead,
+} = Astro.props as {
+  label?: string;
+  heading?: string;
+  lead?: string;
+};
+
+const line = site.sameAs?.find((url) =>
+  /(^|\.)(line\.me|lin\.ee)$/.test(new URL(url).hostname),
+);
+const tel = site.business?.telephone;
+
+const channels = [
+  site.contactFormUrl && {
+    en: "FORM",
+    text: "24時間受け付けています",
+    label: "フォームを開く",
+    href: site.contactFormUrl,
+    external: true,
+  },
+  line && {
+    en: "LINE",
+    text: "LINE公式アカウントから",
+    label: "友だち追加",
+    href: line,
+    external: true,
+  },
+  tel && {
+    en: "TEL",
+    text: tel.replace(/^\+81-?/, "0"),
+    label: "電話をかける",
+    href: `tel:${tel}`,
+  },
+  site.author.email && {
+    en: "MAIL",
+    text: site.author.email,
+    label: "メールを送る",
+    href: `mailto:${site.author.email}`,
+  },
+].filter(Boolean) as {
+  en: string;
+  text: string;
+  label: string;
+  href: string;
+  external?: boolean;
+}[];
+---
+
+<section class="contact section" id="contact" aria-labelledby="contact-heading">
+  <div class="container-page">
+    <SectionTitle label={label} heading={heading} id="contact-heading" />
+    {
+      lead && (
+        <p class="contact__lead text-center" data-reveal>
+          {lead}
+        </p>
+      )
+    }
+
+    <ul class="contact__channels" data-reveal-group>
+      {
+        channels.map((c) => (
+          <li class="contact__channel" data-reveal-item>
+            <p class="contact__channel-en">{c.en}</p>
+            <p class="contact__channel-text">{c.text}</p>
+            <a
+              href={c.href}
+              class="btn"
+              target={c.external ? "_blank" : undefined}
+              rel={c.external ? "noopener" : undefined}
+            >
+              <span>{c.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .contact {
+    background: var(--color-surface);
+  }
+
+  .contact__lead {
+    font-size: 0.9rem;
+    line-height: 2;
+    margin-bottom: clamp(32px, 5vw, 48px);
+  }
+
+  .contact__channels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .contact__channel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 32px 20px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    text-align: center;
+  }
+
+  .contact__channel-en {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    letter-spacing: 0.25em;
+    color: var(--color-fg);
+  }
+
+  .contact__channel-text {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    margin-bottom: 12px;
+  }
+
+  .contact__channel .btn {
+    padding-inline: 32px;
+  }
+</style>

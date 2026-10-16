@@ -1,0 +1,226 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import SectionTitle from "../SectionTitle.astro";
+
+// Staff profiles. Without a photo, the first character of the name sits in a
+// dark square — the design works either way.
+export type StaffMember = {
+  name: string;
+  nameEn?: string;
+  role?: string;
+  description: string;
+  speciality?: string;
+  photo?: ImageMetadata;
+};
+
+const {
+  label = "STAFF",
+  heading,
+  members,
+  specialityLabel = "得意分野",
+} = Astro.props as {
+  label?: string;
+  heading: string;
+  members: StaffMember[];
+  specialityLabel?: string;
+};
+---
+
+<section class="staff section" id="staff" aria-labelledby="staff-heading">
+  <div class="container-page">
+    <SectionTitle label={label} heading={heading} id="staff-heading" />
+
+    <ul class="staff__list">
+      {
+        members.map((staff) => (
+          <li class="staff__member">
+            <div class="staff__avatar" data-reveal="scale">
+              {staff.photo ? (
+                <Image
+                  src={staff.photo}
+                  alt={`${staff.name}の写真`}
+                  widths={[120, 240]}
+                  sizes="120px"
+                  format="webp"
+                  quality={80}
+                  loading="lazy"
+                />
+              ) : (
+                <span class="staff__avatar-initial" aria-hidden="true">
+                  {staff.name.charAt(0)}
+                </span>
+              )}
+            </div>
+            <div class="staff__info" data-reveal-group>
+              <div class="staff__name-area" data-reveal-item>
+                <h3 class="staff__name">{staff.name}</h3>
+                {staff.nameEn && (
+                  <span class="staff__name-en">{staff.nameEn}</span>
+                )}
+              </div>
+              {staff.role && (
+                <span class="staff__role" data-reveal-item>
+                  {staff.role}
+                </span>
+              )}
+              <p class="staff__description" data-reveal-item>
+                {staff.description}
+              </p>
+              {staff.speciality && (
+                <div class="staff__speciality" data-reveal-item>
+                  <span class="staff__speciality-label">{specialityLabel}</span>
+                  <span class="staff__speciality-value">
+                    {staff.speciality}
+                  </span>
+                </div>
+              )}
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .staff {
+    background: var(--color-surface);
+  }
+
+  .staff__list {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(48px, 8vw, 80px);
+    margin-top: clamp(40px, 6vw, 60px);
+  }
+
+  .staff__member {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: clamp(24px, 4vw, 48px);
+    align-items: start;
+  }
+
+  .staff__avatar {
+    width: clamp(80px, 12vw, 120px);
+    height: clamp(80px, 12vw, 120px);
+    background: var(--color-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .staff__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .staff__avatar-initial {
+    font-family: var(--font-serif);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 300;
+    color: var(--color-on-ink);
+  }
+
+  .staff__name-area {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .staff__name {
+    font-family: var(--font-serif);
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--color-fg);
+  }
+
+  .staff__name-en {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: var(--color-muted);
+  }
+
+  .staff__role {
+    display: inline-block;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent-light);
+    padding: 2px 12px;
+    margin-bottom: 16px;
+  }
+
+  .staff__description {
+    font-size: 0.9rem;
+    line-height: 2;
+    color: var(--color-body);
+    margin-bottom: 16px;
+  }
+
+  .staff__speciality {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+  }
+
+  .staff__speciality-label {
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+
+  .staff__speciality-value {
+    color: var(--color-fg);
+    letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 768px) {
+    .staff__list {
+      gap: clamp(36px, 6vw, 48px);
+    }
+
+    .staff__member {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .staff__avatar {
+      width: 72px;
+      height: 72px;
+    }
+
+    .staff__avatar-initial {
+      font-size: 1.3rem;
+    }
+
+    .staff__name-area {
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .staff__name {
+      font-size: 1.1rem;
+    }
+
+    .staff__description {
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    .staff__speciality {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+</style>

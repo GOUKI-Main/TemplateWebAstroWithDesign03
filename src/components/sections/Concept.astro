@@ -1,0 +1,89 @@
+---
+import SectionTitle from "../SectionTitle.astro";
+
+// The dark band: a large statement revealed line by line, then a few short
+// paragraphs. A "\n" inside a string is a line break.
+const {
+  label = "CONCEPT",
+  heading,
+  paragraphs,
+} = Astro.props as {
+  label?: string;
+  /** One string per line of the statement. */
+  heading: string[];
+  paragraphs: string[];
+};
+const lines = (text: string) => text.split("\n");
+---
+
+<section class="concept" id="concept" aria-labelledby="concept-heading">
+  <div class="concept__inner">
+    <SectionTitle label={label} light />
+    <h2 class="concept__heading" id="concept-heading" data-reveal-lines>
+      {
+        heading.map((line, i) => (
+          <>
+            {line}
+            {i < heading.length - 1 && <br />}
+          </>
+        ))
+      }
+    </h2>
+    <div class="concept__body" data-reveal-group>
+      {
+        paragraphs.map((p) => (
+          <p data-reveal-item>
+            {lines(p).map((line, i, all) => (
+              <>
+                {line}
+                {i < all.length - 1 && <br />}
+              </>
+            ))}
+          </p>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .concept {
+    background: var(--color-ink);
+    padding: var(--section-padding) 0;
+    color: var(--color-on-ink);
+  }
+
+  .concept__inner {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+    text-align: center;
+  }
+
+  .concept :global(.section-label) {
+    color: color-mix(in srgb, var(--color-on-ink) 50%, transparent);
+  }
+
+  .concept__heading {
+    font-family: var(--font-serif);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 400;
+    line-height: 2;
+    letter-spacing: 0.1em;
+    margin-bottom: 3rem;
+    color: var(--color-on-ink);
+  }
+
+  .concept__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .concept__body p {
+    font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+    line-height: 2.2;
+    color: color-mix(in srgb, var(--color-on-ink) 80%, transparent);
+    letter-spacing: 0.08em;
+  }
+</style>

@@ -1,12 +1,31 @@
 ---
+import { Image } from "astro:assets";
 import { site } from "../content/site";
+import BrandMark from "./BrandMark.astro";
+// TODO(setup): Q10 フッター背景の写真（暗く重ねるので、店内や雰囲気の写真が向く）
+import footerImage from "../assets/images/interior.png";
 
 const { author } = site;
 const year = new Date().getFullYear();
 
-// Brand profiles (site.sameAs) first, then the author's own; de-duplicated so
-// the same account listed in both places renders once. Labels come from the
-// host, so adding a URL in site.ts is all it takes.
+// Every link the site has, in one row: the menu's links (flattened, so this
+// row is also the no-JavaScript route to every section), then policy pages
+// and mail. De-duplicated by href.
+const navLinks = [
+  ...site.nav.flatMap((item) =>
+    item.children?.length
+      ? item.children
+      : [{ label: item.label, href: item.href }],
+  ),
+  ...(site.footerNav ?? []),
+  ...(author.email
+    ? [{ label: "メール", href: `mailto:${author.email}` }]
+    : []),
+].filter((link, i, all) => all.findIndex((l) => l.href === link.href) === i);
+
+// Brand profiles (site.sameAs) first, then the author's own. Labels come from
+// the host, so adding a URL in site.ts is all it takes; Instagram gets the
+// design's line icon, the rest a Latin label.
 const LABELS: Record<string, string> = {
   "x.com": "X",
   "twitter.com": "X",
@@ -15,6 +34,7 @@ const LABELS: Record<string, string> = {
   "youtube.com": "YouTube",
   "tiktok.com": "TikTok",
   "line.me": "LINE",
+  "lin.ee": "LINE",
   "note.com": "note",
   "github.com": "GitHub",
   "linkedin.com": "LinkedIn",
@@ -28,46 +48,253 @@ const profiles = [
     ...(site.sameAs ?? []),
     ...(Object.values(author.socials ?? {}).filter(Boolean) as string[]),
   ]),
-];
-
-// One list, one rendering: policy pages, mail, then external profiles.
-const links: { label: string; href: string; external?: boolean }[] = [
-  ...(site.footerNav ?? []),
-  ...(author.email
-    ? [{ label: "メール", href: `mailto:${author.email}` }]
-    : []),
-  ...profiles.map((url) => ({
-    label: labelFor(url),
-    href: url,
-    external: true,
-  })),
-];
+].map((url) => ({ url, label: labelFor(url) }));
 ---
 
-<footer class="border-t border-border">
-  <div
-    class="container-page flex flex-col items-start gap-2 py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-  >
-    <p class="m-0">
+<footer class="footer" data-menu-background>
+  <div class="footer__bg">
+    <Image
+      src={footerImage}
+      alt=""
+      class="footer__bg-image"
+      widths={[640]}
+      sizes="100vw"
+      format="webp"
+      quality={70}
+      loading="lazy"
+      data-parallax="5"
+    />
+    <div class="footer__overlay"></div>
+  </div>
+  <div class="footer__content" data-reveal-group>
+    <div class="footer__logo" data-reveal-item>
+      <BrandMark class="footer__mark" />
+      <p class="footer__logo-name">{site.brand.wordmark}</p>
+      {
+        site.brand.subtitle && (
+          <p class="footer__logo-sub">{site.brand.subtitle}</p>
+        )
+      }
+    </div>
+
+    {
+      profiles.length > 0 && (
+        <ul class="footer__social" data-reveal-item>
+          {profiles.map((p) => (
+            <li>
+              <a
+                href={p.url}
+                class="footer__social-link tap-target"
+                target="_blank"
+                rel="noopener"
+                aria-label={p.label}
+              >
+                {p.label === "Instagram" ? (
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    aria-hidden="true"
+                  >
+                    <rect x="2" y="2" width="20" height="20" rx="5" />
+                    <circle cx="12" cy="12" r="5" />
+                    <circle
+                      cx="18"
+                      cy="6"
+                      r="1.5"
+                      fill="currentColor"
+                      stroke="none"
+                    />
+                  </svg>
+                ) : (
+                  <span class="footer__social-text">{p.label}</span>
+                )}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <nav class="footer__nav" aria-label="サイト内リンク" data-reveal-item>
+      <ul>
+        {
+          navLinks.map((link) => (
+            <li>
+              <a href={link.href} class="tap-target">
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <p class="footer__copy" data-reveal-item>
       {
         /* The rights holder is the business, not the person running the site. */
       }
-      {`© ${year} ${site.business?.legalName ?? site.name}`}
+      &copy; {year}
+      {site.business?.legalName ?? site.name}
     </p>
-
-    <div class="flex flex-wrap gap-x-5 gap-y-1">
-      {
-        links.map((link) => (
-          <a
-            class="tap-target text-muted no-underline hover:text-link"
-            href={link.href}
-            target={link.external ? "_blank" : undefined}
-            rel={link.external ? "noopener" : undefined}
-          >
-            {link.label}
-          </a>
-        ))
-      }
-    </div>
   </div>
 </footer>
+
+<style>
+  .footer {
+    position: relative;
+    color: var(--color-on-ink);
+  }
+
+  .footer__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  /* Taller than the box by the parallax travel, so no edge ever shows */
+  .footer__bg :global(.footer__bg-image) {
+    width: 100%;
+    height: 112%;
+    margin-top: -6%;
+    object-fit: cover;
+  }
+
+  .footer__overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--color-overlay);
+  }
+
+  .footer__content {
+    position: relative;
+    z-index: 1;
+    padding: clamp(60px, 10vw, 100px) var(--container-padding);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    text-align: center;
+  }
+
+  .footer__logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .footer__logo :global(.footer__mark) {
+    --mark-size: 48px;
+    --mark-font: 1rem;
+    --mark-border: 1px;
+    --mark-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 8px;
+  }
+
+  .footer__logo-name {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: 0.25em;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .footer__logo-sub {
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .footer__social {
+    display: flex;
+    gap: 16px;
+  }
+
+  .footer__social-link {
+    color: rgba(255, 255, 255, 0.6);
+    transition: color var(--transition-base);
+  }
+
+  .footer__social-link:hover {
+    color: rgba(255, 255, 255, 1);
+    opacity: 1;
+  }
+
+  .footer__social-text {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+  }
+
+  .footer__nav ul {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 0;
+  }
+
+  /* The thin vertical bars between links */
+  .footer__nav li + li::before {
+    content: "|";
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 0.7rem;
+    padding-inline: 8px;
+  }
+
+  .footer__nav a {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.6);
+    transition: color var(--transition-base);
+  }
+
+  .footer__nav a:hover {
+    color: rgba(255, 255, 255, 1);
+    opacity: 1;
+  }
+
+  .footer__copy {
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .footer__content {
+      padding: clamp(40px, 8vw, 60px) var(--container-padding);
+      gap: 1.5rem;
+    }
+
+    .footer__logo :global(.footer__mark) {
+      --mark-size: 40px;
+      --mark-font: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .footer__logo-name {
+      font-size: 1.2rem;
+    }
+
+    .footer__nav li + li::before {
+      font-size: 0.6rem;
+      padding-inline: 5px;
+    }
+
+    .footer__nav a {
+      font-size: 0.7rem;
+    }
+
+    .footer__copy {
+      font-size: 0.6rem;
+    }
+  }
+</style>

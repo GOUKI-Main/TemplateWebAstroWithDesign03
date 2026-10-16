@@ -1,0 +1,246 @@
+---
+import { site } from "../content/site";
+import BrandMark from "./BrandMark.astro";
+
+// The menu the header's MENU button opens. Built from site.nav: each item is a
+// category (its `en` caption large, its label small), listing its `children`
+// — or itself when it has none. Opening/closing, focus trapping and Escape
+// are in src/scripts/menu.ts.
+const sections = site.nav.map((item) => ({
+  en: item.en ?? item.label,
+  jp: item.label,
+  links: item.children?.length
+    ? item.children
+    : [{ label: item.label, href: item.href }],
+}));
+---
+
+<nav
+  class="fullscreen-menu"
+  id="fullscreen-menu"
+  aria-label="メニュー"
+  aria-hidden="true"
+  data-menu
+>
+  <div class="fullscreen-menu__overlay" data-menu-overlay></div>
+  <div class="fullscreen-menu__content">
+    <div class="fullscreen-menu__header">
+      <a
+        href="/"
+        class="fullscreen-menu__logo tap-target"
+        aria-label={`${site.name} トップへ`}
+        data-menu-link
+      >
+        <BrandMark class="fullscreen-menu__mark" />
+      </a>
+      <button
+        type="button"
+        class="fullscreen-menu__close tap-target"
+        data-menu-close
+        aria-label="メニューを閉じる"
+      >
+        <span>CLOSE</span>
+      </button>
+    </div>
+    <div class="fullscreen-menu__nav">
+      {
+        sections.map((section) => (
+          <div class="fullscreen-menu__section">
+            <div class="fullscreen-menu__category-mask">
+              <div class="fullscreen-menu__category" data-menu-category>
+                <span class="fullscreen-menu__category-jp">{section.jp}</span>
+                <span class="fullscreen-menu__category-en">{section.en}</span>
+                <span class="fullscreen-menu__line" data-menu-line />
+              </div>
+            </div>
+            <ul class="fullscreen-menu__list">
+              {section.links.map((link) => (
+                <li>
+                  <a
+                    href={link.href}
+                    class="fullscreen-menu__link tap-target"
+                    data-menu-link
+                  >
+                    ▸ {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</nav>
+
+<style>
+  /* Opened and closed by the timeline in src/scripts/menu.ts (autoAlpha) */
+  .fullscreen-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .fullscreen-menu__overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--color-overlay);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .fullscreen-menu__content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 24px 32px 60px;
+  }
+
+  .fullscreen-menu__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 60px;
+  }
+
+  .fullscreen-menu__logo :global(.fullscreen-menu__mark) {
+    --mark-size: 56px;
+    --mark-font: 1.25rem;
+    --mark-color: rgba(255, 255, 255, 0.9);
+  }
+
+  .fullscreen-menu__close {
+    padding: 12px 24px;
+    transition: opacity var(--transition-base);
+  }
+
+  .fullscreen-menu__close span {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .fullscreen-menu__close:hover {
+    opacity: 0.6;
+  }
+
+  .fullscreen-menu__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .fullscreen-menu__section {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px 40px;
+    align-items: start;
+  }
+
+  /* Lets the category row rise from below */
+  .fullscreen-menu__category-mask {
+    overflow: hidden;
+  }
+
+  .fullscreen-menu__category {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .fullscreen-menu__category-jp {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    writing-mode: vertical-rl;
+    letter-spacing: 0.15em;
+  }
+
+  .fullscreen-menu__category-en {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+  }
+
+  .fullscreen-menu__line {
+    display: inline-block;
+    width: 40px;
+    height: 1px;
+    background: var(--color-accent);
+    transform-origin: left center;
+  }
+
+  .fullscreen-menu__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 4px;
+  }
+
+  .fullscreen-menu__link {
+    justify-content: flex-start;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 0.1em;
+    transition: color var(--transition-base);
+  }
+
+  .fullscreen-menu__link:hover {
+    color: rgba(255, 255, 255, 1);
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .fullscreen-menu__content {
+      padding: 14px 16px 40px;
+    }
+
+    .fullscreen-menu__header {
+      margin-bottom: 36px;
+    }
+
+    .fullscreen-menu__logo :global(.fullscreen-menu__mark) {
+      --mark-size: 40px;
+      --mark-font: 1rem;
+    }
+
+    .fullscreen-menu__close span {
+      font-size: 0.7rem;
+    }
+
+    .fullscreen-menu__nav {
+      gap: 32px;
+    }
+
+    .fullscreen-menu__section {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .fullscreen-menu__category-jp {
+      writing-mode: horizontal-tb;
+      font-size: 0.65rem;
+    }
+
+    .fullscreen-menu__category-en {
+      font-size: clamp(1.2rem, 5vw, 1.6rem);
+    }
+
+    .fullscreen-menu__line {
+      width: 24px;
+    }
+
+    .fullscreen-menu__link {
+      font-size: 0.85rem;
+    }
+  }
+</style>
